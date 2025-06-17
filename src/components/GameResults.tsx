@@ -22,9 +22,9 @@ const GameResults = ({ data, onRestart }: GameResultsProps) => {
   const { userScore, aiScore, aiCorrect, userAccuracy, learningRate = 0.5, errorRate = 0.5 } = data;
 
   const getPerformanceMessage = () => {
-    if (userScore >= 90) return "🎉 LEGENDARY! Your AI is a GENIUS!";
-    if (userScore >= 80) return "⭐ AWESOME! Your AI learned well!";
-    if (userScore >= 60) return "👍 GOOD JOB! Your AI is getting there!";
+    if (aiScore >= 90) return "🎉 LEGENDARY! Your AI is a GENIUS!";
+    if (aiScore >= 80) return "⭐ AWESOME! Your AI learned well!";
+    if (aiScore >= 60) return "👍 GOOD JOB! Your AI is getting there!";
     return "🤔 Your AI needs more training!";
   };
 
