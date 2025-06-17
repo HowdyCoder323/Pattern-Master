@@ -78,7 +78,7 @@ const Index = () => {
         <GameResults data={gameData} onRestart={resetGame} />
       )}
       
-      <style jsx>{`
+      <style>{`
         .retro-glow {
           box-shadow: 0 0 20px rgba(0, 255, 255, 0.3), inset 0 0 20px rgba(0, 255, 255, 0.1);
         }

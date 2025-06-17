@@ -147,7 +147,7 @@ const NeuralNetworkViz = ({ learningRate, errorRate, isTraining, accuracy }: Neu
         <span>ER: {Math.round(errorRate * 100)}%</span>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .retro-glow {
           box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
         }

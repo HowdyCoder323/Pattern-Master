@@ -26,9 +26,9 @@ const PatternGame = ({ onGameEnd }: PatternGameProps) => {
   const [gamePhase, setGamePhase] = useState<'patterns' | 'ai-solving'>('patterns');
   const [aiProgress, setAiProgress] = useState(0);
   
-  // New state for interactive controls
-  const [learningRate, setLearningRate] = useState(0.5);
-  const [errorRate, setErrorRate] = useState(0.5);
+  // Updated state for new progress bar controls
+  const [learningRate, setLearningRate] = useState(0.3);
+  const [errorRate, setErrorRate] = useState(0.7);
   const [isTraining, setIsTraining] = useState(false);
 
   const patterns: Pattern[] = [
@@ -42,17 +42,20 @@ const PatternGame = ({ onGameEnd }: PatternGameProps) => {
   useEffect(() => {
     if (gamePhase === 'patterns') {
       setIsTraining(true);
+      
+      // AI naturally drifts toward errors
+      const driftInterval = setInterval(() => {
+        setErrorRate(prev => Math.min(1, prev + 0.02));
+        setLearningRate(prev => Math.max(0, prev - 0.01));
+      }, 500);
+
+      return () => clearInterval(driftInterval);
     }
   }, [gamePhase, currentPattern]);
 
-  const handleLearningRateClick = () => {
-    setLearningRate(Math.min(1, learningRate + 0.1));
-    setErrorRate(Math.max(0, errorRate - 0.05));
-  };
-
-  const handleErrorRateClick = () => {
-    setErrorRate(Math.min(1, errorRate + 0.1));
-    setLearningRate(Math.max(0, learningRate - 0.05));
+  const handleLearnFastClick = () => {
+    setLearningRate(prev => Math.min(1, prev + 0.15));
+    setErrorRate(prev => Math.max(0, prev - 0.1));
   };
 
   const handleSubmit = () => {
@@ -223,42 +226,56 @@ const PatternGame = ({ onGameEnd }: PatternGameProps) => {
             )}
           </div>
 
-          {/* Interactive AI Training Controls */}
+          {/* Updated AI Training Controls - Progress Bar Style */}
           <div className="mt-8 bg-gray-800/50 rounded-xl p-6 border-2 border-purple-400">
-            <h3 className="text-lg font-bold text-purple-400 mb-4 font-mono text-center">⚡ AI TRAINING CONTROLS</h3>
+            <h3 className="text-lg font-bold text-purple-400 mb-4 font-mono text-center">⚡ AI TRAINING BALANCE</h3>
             <p className="text-xs text-cyan-300 mb-4 font-mono text-center">
-              Click rapidly while solving! Balance learning vs errors!
+              AI drifts toward errors! Click LEARN FAST to keep it smart! 🔥
             </p>
             
-            <div className="flex gap-4">
+            <div className="relative">
+              {/* Progress bar background */}
+              <div className="w-full h-16 bg-gray-700 rounded-xl border-2 border-gray-600 relative overflow-hidden">
+                {/* Learning rate portion (green) */}
+                <div 
+                  className="absolute left-0 top-0 h-full bg-gradient-to-r from-green-500 to-cyan-500 transition-all duration-300"
+                  style={{ width: `${(learningRate / (learningRate + errorRate)) * 100}%` }}
+                />
+                {/* Error rate portion (red) */}
+                <div 
+                  className="absolute right-0 top-0 h-full bg-gradient-to-r from-orange-500 to-red-500 transition-all duration-300"
+                  style={{ width: `${(errorRate / (learningRate + errorRate)) * 100}%` }}
+                />
+                
+                {/* Center divider */}
+                <div className="absolute left-1/2 top-0 h-full w-0.5 bg-white/50 transform -translate-x-0.5" />
+              </div>
+              
+              {/* Left button - Learn Fast */}
               <button
-                onClick={handleLearningRateClick}
-                className="flex-1 bg-gradient-to-r from-green-500 to-cyan-500 text-black font-bold py-4 px-6 rounded-xl font-mono text-lg hover:scale-105 transform transition-all duration-200 retro-glow border-2 border-white/30"
+                onClick={handleLearnFastClick}
+                className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-green-500 to-cyan-500 text-black font-bold py-2 px-4 rounded-lg font-mono text-sm hover:scale-110 transition-all duration-200 retro-glow border-2 border-white/30 z-10"
               >
-                <Zap className="inline mr-2" size={20} />
+                <Zap className="inline mr-1" size={16} />
                 LEARN FAST
-                <div className="text-sm mt-1">{Math.round(learningRate * 100)}%</div>
               </button>
               
-              <button
-                onClick={handleErrorRateClick}
-                className="flex-1 bg-gradient-to-r from-red-500 to-orange-500 text-black font-bold py-4 px-6 rounded-xl font-mono text-lg hover:scale-105 transform transition-all duration-200 retro-glow border-2 border-white/30"
-              >
-                <AlertTriangle className="inline mr-2" size={20} />
-                MAKE ERRORS
-                <div className="text-sm mt-1">{Math.round(errorRate * 100)}%</div>
-              </button>
+              {/* Right side label - Make Errors (no button, just shows drift) */}
+              <div className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-orange-500 to-red-500 text-black font-bold py-2 px-4 rounded-lg font-mono text-sm border-2 border-white/30 opacity-75">
+                <AlertTriangle className="inline mr-1" size={16} />
+                AI DRIFT
+              </div>
             </div>
             
-            <div className="mt-4 text-center">
-              <div className="text-sm text-cyan-300 font-mono">
-                AI Efficiency: {Math.round((learningRate / (1 + errorRate)) * 100)}%
-              </div>
+            <div className="mt-4 flex justify-between text-xs text-cyan-300 font-mono">
+              <span>Learning: {Math.round(learningRate * 100)}%</span>
+              <span>AI Efficiency: {Math.round((learningRate / (1 + errorRate)) * 100)}%</span>
+              <span>Errors: {Math.round(errorRate * 100)}%</span>
             </div>
           </div>
         </Card>
 
-        <style jsx>{`
+        <style>{`
           .retro-glow {
             box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
           }
