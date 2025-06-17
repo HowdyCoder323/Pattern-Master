@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle, XCircle, ArrowRight, Zap, AlertTriangle } from "lucide-react";
 import NeuralNetworkViz from "./NeuralNetworkViz";
+import { generatePatterns } from "@/utils/patternGenerator";
 
 interface Pattern {
   sequence: number[];
@@ -17,6 +18,7 @@ interface PatternGameProps {
 }
 
 const PatternGame = ({ onGameEnd }: PatternGameProps) => {
+  const [patterns, setPatterns] = useState<Pattern[]>([]);
   const [currentPattern, setCurrentPattern] = useState(0);
   const [userAnswer, setUserAnswer] = useState("");
   const [userAnswers, setUserAnswers] = useState<number[]>([]);
@@ -30,13 +32,10 @@ const PatternGame = ({ onGameEnd }: PatternGameProps) => {
   const [errorRate, setErrorRate] = useState(0.8);
   const [isTraining, setIsTraining] = useState(false);
 
-  const patterns: Pattern[] = [
-    { sequence: [2, 4, 6, 8], answer: 10, rule: "Add 2" },
-    { sequence: [1, 4, 9, 16], answer: 25, rule: "Perfect squares" },
-    { sequence: [3, 6, 12, 24], answer: 48, rule: "Multiply by 2" },
-    { sequence: [1, 1, 2, 3, 5], answer: 8, rule: "Fibonacci" },
-    { sequence: [10, 9, 7, 4], answer: 0, rule: "Subtract increasing numbers" }
-  ];
+  // Generate patterns when component mounts
+  useEffect(() => {
+    setPatterns(generatePatterns(5));
+  }, []);
 
   useEffect(() => {
     if (gamePhase === 'patterns') {
@@ -180,59 +179,61 @@ const PatternGame = ({ onGameEnd }: PatternGameProps) => {
             </div>
           </div>
 
-          <div className="text-center mb-8">
-            <h3 className="text-2xl font-bold text-pink-400 mb-6 font-mono">🔍 WHAT'S THE NEXT NUMBER?</h3>
-            
-            <div className="flex items-center justify-center gap-4 mb-8 flex-wrap">
-              {patterns[currentPattern].sequence.map((num, index) => (
-                <div key={index} className="w-16 h-16 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-lg flex items-center justify-center font-bold text-2xl text-black retro-glow border-2 border-white/30">
-                  {num}
+          {patterns.length > 0 && (
+            <div className="text-center mb-8">
+              <h3 className="text-2xl font-bold text-pink-400 mb-6 font-mono">🔍 WHAT'S THE NEXT NUMBER?</h3>
+              
+              <div className="flex items-center justify-center gap-4 mb-8 flex-wrap">
+                {patterns[currentPattern]?.sequence.map((num, index) => (
+                  <div key={index} className="w-16 h-16 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-lg flex items-center justify-center font-bold text-2xl text-black retro-glow border-2 border-white/30">
+                    {num}
+                  </div>
+                ))}
+                <ArrowRight className="text-cyan-400" size={32} />
+                <div className="w-16 h-16 bg-gray-800 rounded-lg flex items-center justify-center font-bold text-3xl text-cyan-400 border-2 border-dashed border-cyan-400">
+                  ?
                 </div>
-              ))}
-              <ArrowRight className="text-cyan-400" size={32} />
-              <div className="w-16 h-16 bg-gray-800 rounded-lg flex items-center justify-center font-bold text-3xl text-cyan-400 border-2 border-dashed border-cyan-400">
-                ?
               </div>
+
+              {showResult && patterns[currentPattern] && (
+                <div className={`mb-6 p-6 rounded-xl border-2 ${
+                  isCorrect 
+                    ? 'bg-green-900/50 text-green-300 border-green-400' 
+                    : 'bg-red-900/50 text-red-300 border-red-400'
+                } retro-glow`}>
+                  <div className="flex items-center justify-center gap-3 mb-3">
+                    {isCorrect ? <CheckCircle size={24} /> : <XCircle size={24} />}
+                    <span className="font-bold text-xl font-mono">
+                      {isCorrect ? '🎉 CORRECT!' : '❌ INCORRECT'}
+                    </span>
+                  </div>
+                  <p className="font-mono">
+                    Answer: {patterns[currentPattern].answer} ({patterns[currentPattern].rule})
+                  </p>
+                </div>
+              )}
+
+              {!showResult && (
+                <div className="space-y-6">
+                  <Input
+                    type="number"
+                    value={userAnswer}
+                    onChange={(e) => setUserAnswer(e.target.value)}
+                    placeholder="Enter your answer"
+                    className="text-center text-2xl font-bold bg-gray-800 border-2 border-cyan-400 text-cyan-300 font-mono h-16 retro-glow"
+                    onKeyPress={(e) => e.key === 'Enter' && userAnswer && handleSubmit()}
+                  />
+                  <Button
+                    onClick={handleSubmit}
+                    disabled={!userAnswer}
+                    className="w-full bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 hover:from-cyan-500 hover:via-purple-600 hover:to-pink-600 text-black font-bold text-xl py-6 font-mono retro-glow border-2 border-white/30"
+                  >
+                    🚀 SUBMIT ANSWER
+                  </Button>
+                </div>
+              )}
             </div>
-
-            {showResult && (
-              <div className={`mb-6 p-6 rounded-xl border-2 ${
-                isCorrect 
-                  ? 'bg-green-900/50 text-green-300 border-green-400' 
-                  : 'bg-red-900/50 text-red-300 border-red-400'
-              } retro-glow`}>
-                <div className="flex items-center justify-center gap-3 mb-3">
-                  {isCorrect ? <CheckCircle size={24} /> : <XCircle size={24} />}
-                  <span className="font-bold text-xl font-mono">
-                    {isCorrect ? '🎉 CORRECT!' : '❌ INCORRECT'}
-                  </span>
-                </div>
-                <p className="font-mono">
-                  Answer: {patterns[currentPattern].answer} ({patterns[currentPattern].rule})
-                </p>
-              </div>
-            )}
-
-            {!showResult && (
-              <div className="space-y-6">
-                <Input
-                  type="number"
-                  value={userAnswer}
-                  onChange={(e) => setUserAnswer(e.target.value)}
-                  placeholder="Enter your answer"
-                  className="text-center text-2xl font-bold bg-gray-800 border-2 border-cyan-400 text-cyan-300 font-mono h-16 retro-glow"
-                  onKeyPress={(e) => e.key === 'Enter' && userAnswer && handleSubmit()}
-                />
-                <Button
-                  onClick={handleSubmit}
-                  disabled={!userAnswer}
-                  className="w-full bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 hover:from-cyan-500 hover:via-purple-600 hover:to-pink-600 text-black font-bold text-xl py-6 font-mono retro-glow border-2 border-white/30"
-                >
-                  🚀 SUBMIT ANSWER
-                </Button>
-              </div>
-            )}
-          </div>
+          )}
 
           {/* Updated AI Training Controls with more challenging balance */}
           <div className="mt-8 bg-gray-800/50 rounded-xl p-6 border-2 border-purple-400">
