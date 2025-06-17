@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,9 +25,9 @@ const PatternGame = ({ onGameEnd }: PatternGameProps) => {
   const [gamePhase, setGamePhase] = useState<'patterns' | 'ai-solving'>('patterns');
   const [aiProgress, setAiProgress] = useState(0);
   
-  // Updated state for new progress bar controls
-  const [learningRate, setLearningRate] = useState(0.3);
-  const [errorRate, setErrorRate] = useState(0.7);
+  // Updated state for more challenging training balance
+  const [learningRate, setLearningRate] = useState(0.2);
+  const [errorRate, setErrorRate] = useState(0.8);
   const [isTraining, setIsTraining] = useState(false);
 
   const patterns: Pattern[] = [
@@ -43,19 +42,28 @@ const PatternGame = ({ onGameEnd }: PatternGameProps) => {
     if (gamePhase === 'patterns') {
       setIsTraining(true);
       
-      // AI naturally drifts toward errors
+      // Much more aggressive AI drift - faster when learning rate is lower
       const driftInterval = setInterval(() => {
-        setErrorRate(prev => Math.min(1, prev + 0.02));
-        setLearningRate(prev => Math.max(0, prev - 0.01));
-      }, 500);
+        setErrorRate(prev => {
+          // Drift speed inversely proportional to learning rate (faster when LR is low)
+          const driftSpeed = 0.04 + (0.06 * (1 - learningRate));
+          return Math.min(1, prev + driftSpeed);
+        });
+        setLearningRate(prev => {
+          // Learning rate decays faster when it's already low
+          const decaySpeed = 0.02 + (0.03 * (1 - prev));
+          return Math.max(0, prev - decaySpeed);
+        });
+      }, 300); // Faster interval for more challenging gameplay
 
       return () => clearInterval(driftInterval);
     }
-  }, [gamePhase, currentPattern]);
+  }, [gamePhase, currentPattern, learningRate]);
 
   const handleLearnFastClick = () => {
-    setLearningRate(prev => Math.min(1, prev + 0.15));
-    setErrorRate(prev => Math.max(0, prev - 0.1));
+    // More modest boost to make it more challenging
+    setLearningRate(prev => Math.min(1, prev + 0.12));
+    setErrorRate(prev => Math.max(0, prev - 0.08));
   };
 
   const handleSubmit = () => {
@@ -226,11 +234,11 @@ const PatternGame = ({ onGameEnd }: PatternGameProps) => {
             )}
           </div>
 
-          {/* Updated AI Training Controls - Progress Bar Style */}
+          {/* Updated AI Training Controls with more challenging balance */}
           <div className="mt-8 bg-gray-800/50 rounded-xl p-6 border-2 border-purple-400">
             <h3 className="text-lg font-bold text-purple-400 mb-4 font-mono text-center">⚡ AI TRAINING BALANCE</h3>
             <p className="text-xs text-cyan-300 mb-4 font-mono text-center">
-              AI drifts toward errors! Click LEARN FAST to keep it smart! 🔥
+              ⚠️ AI DRIFTS FAST toward errors! Keep clicking LEARN FAST! 🔥
             </p>
             
             <div className="relative">
