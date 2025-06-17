@@ -22,46 +22,49 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 relative overflow-hidden">
+      {/* Retro grid background */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(0,255,255,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(0,255,255,0.1)_1px,transparent_1px)] bg-[size:20px_20px]"></div>
+      
       {gameState === 'menu' && (
-        <div className="min-h-screen flex items-center justify-center p-6">
+        <div className="min-h-screen flex items-center justify-center p-6 relative z-10">
           <div className="text-center max-w-2xl mx-auto">
             <div className="mb-8">
-              <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
-                Pattern Predictor Pro
+              <h1 className="text-6xl font-bold bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-4 font-mono tracking-wider drop-shadow-lg">
+                🤖 PATTERN MASTER 🧠
               </h1>
-              <p className="text-xl text-gray-600 leading-relaxed">
-                Train an AI by solving pattern sequences. Your accuracy determines how well the AI performs on 10 math problems!
+              <p className="text-xl text-cyan-300 leading-relaxed font-mono pixel-text">
+                Train your AI buddy by solving number patterns! 🎮✨
               </p>
             </div>
             
-            <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-white/20 mb-8">
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">How it works</h2>
-              <div className="space-y-3 text-left">
+            <div className="bg-gray-900/80 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border-2 border-cyan-400 mb-8 retro-glow">
+              <h2 className="text-2xl font-bold text-cyan-400 mb-4 font-mono">🎯 MISSION BRIEFING</h2>
+              <div className="space-y-4 text-left">
                 <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-medium mt-0.5">1</div>
-                  <p className="text-gray-700">You'll see a sequence of numbers following a pattern</p>
+                  <div className="w-8 h-8 bg-gradient-to-r from-cyan-400 to-purple-500 text-black rounded-lg flex items-center justify-center text-sm font-bold mt-0.5 retro-glow">1</div>
+                  <p className="text-cyan-200 font-mono">🧩 Solve number pattern puzzles</p>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-medium mt-0.5">2</div>
-                  <p className="text-gray-700">Predict the next number in the sequence</p>
+                  <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 text-black rounded-lg flex items-center justify-center text-sm font-bold mt-0.5 retro-glow">2</div>
+                  <p className="text-cyan-200 font-mono">⚡ Control AI learning speed with buttons</p>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-medium mt-0.5">3</div>
-                  <p className="text-gray-700">The AI learns from your accuracy and solves 10 problems</p>
+                  <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-cyan-400 text-black rounded-lg flex items-center justify-center text-sm font-bold mt-0.5 retro-glow">3</div>
+                  <p className="text-cyan-200 font-mono">👀 Watch your AI train in real-time</p>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-medium mt-0.5">4</div>
-                  <p className="text-gray-700">Both you and the AI get scored based on performance!</p>
+                  <div className="w-8 h-8 bg-gradient-to-r from-cyan-400 to-purple-500 text-black rounded-lg flex items-center justify-center text-sm font-bold mt-0.5 retro-glow">4</div>
+                  <p className="text-cyan-200 font-mono">🏆 Get scored based on your training skills!</p>
                 </div>
               </div>
             </div>
 
             <button
               onClick={startGame}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:from-blue-700 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 shadow-lg"
+              className="bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 text-black px-12 py-6 rounded-2xl text-2xl font-bold hover:scale-110 transform transition-all duration-300 retro-glow font-mono tracking-wider shadow-2xl border-2 border-white/30"
             >
-              Start Training
+              🚀 START MISSION
             </button>
           </div>
         </div>
@@ -74,6 +77,15 @@ const Index = () => {
       {gameState === 'results' && (
         <GameResults data={gameData} onRestart={resetGame} />
       )}
+      
+      <style jsx>{`
+        .retro-glow {
+          box-shadow: 0 0 20px rgba(0, 255, 255, 0.3), inset 0 0 20px rgba(0, 255, 255, 0.1);
+        }
+        .pixel-text {
+          text-shadow: 2px 2px 0px rgba(0, 255, 255, 0.5);
+        }
+      `}</style>
     </div>
   );
 };
