@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +30,7 @@ const PatternGame = ({ onGameEnd }: PatternGameProps) => {
   const [aiProgress, setAiProgress] = useState(0);
   const [timeLeft, setTimeLeft] = useState(10);
   const [isTimerActive, setIsTimerActive] = useState(true);
+  const [isProcessingAnswer, setIsProcessingAnswer] = useState(false);
   
   const [learningRate, setLearningRate] = useState(0.2);
   const [errorRate, setErrorRate] = useState(0.8);
@@ -41,9 +41,9 @@ const PatternGame = ({ onGameEnd }: PatternGameProps) => {
     setPatterns(generatePatterns(5));
   }, []);
 
-  // Timer effect
+  // Timer effect - simplified to prevent race conditions
   useEffect(() => {
-    if (!isTimerActive || showResult || gamePhase !== 'patterns') return;
+    if (!isTimerActive || showResult || gamePhase !== 'patterns' || isProcessingAnswer) return;
     
     if (timeLeft <= 0) {
       handleTimeUp();
@@ -51,23 +51,23 @@ const PatternGame = ({ onGameEnd }: PatternGameProps) => {
     }
 
     const timer = setTimeout(() => {
-      setTimeLeft(timeLeft - 1);
+      setTimeLeft(prev => prev - 1);
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [timeLeft, isTimerActive, showResult, gamePhase]);
+  }, [timeLeft, isTimerActive, showResult, gamePhase, isProcessingAnswer]);
 
-  // Reset timer for each new pattern
+  // Reset timer for each new pattern - only when not processing
   useEffect(() => {
-    if (gamePhase === 'patterns' && !showResult) {
+    if (gamePhase === 'patterns' && !showResult && !isProcessingAnswer) {
       setTimeLeft(10);
       setIsTimerActive(true);
     }
-  }, [currentPattern, gamePhase, showResult]);
+  }, [currentPattern, gamePhase, showResult, isProcessingAnswer]);
 
   // AI drift effect with game ending when drift reaches maximum
   useEffect(() => {
-    if (gamePhase === 'patterns') {
+    if (gamePhase === 'patterns' && !isProcessingAnswer) {
       setIsTraining(true);
       
       const driftInterval = setInterval(() => {
@@ -91,30 +91,39 @@ const PatternGame = ({ onGameEnd }: PatternGameProps) => {
 
       return () => clearInterval(driftInterval);
     }
-  }, [gamePhase, currentPattern, learningRate]);
+  }, [gamePhase, currentPattern, learningRate, isProcessingAnswer]);
 
   const endGameDueToDrift = () => {
+    if (isProcessingAnswer) return;
+    setIsProcessingAnswer(true);
     setIsTimerActive(false);
     setGamePhase('ai-solving');
     simulateAISolving();
   };
 
   const handleTimeUp = () => {
+    if (isProcessingAnswer) return;
+    
+    console.log('Timer ran out for question', currentPattern + 1);
+    setIsProcessingAnswer(true);
     setIsTimerActive(false);
-    // Count as wrong answer
-    setWrongAnswers([...wrongAnswers, patterns[currentPattern].answer]);
-    setUserAnswers([...userAnswers, -1]); // -1 indicates no answer
+    
+    // Count as wrong answer - timeout
+    setWrongAnswers(prev => [...prev, patterns[currentPattern].answer]);
+    setUserAnswers(prev => [...prev, -1]); // -1 indicates timeout
     
     setShowResult(true);
     setIsCorrect(false);
 
     setTimeout(() => {
       if (currentPattern < patterns.length - 1) {
-        setCurrentPattern(currentPattern + 1);
+        console.log('Moving to next question after timeout');
+        setCurrentPattern(prev => prev + 1);
         setUserAnswer("");
         setShowResult(false);
-        setIsTimerActive(true);
+        setIsProcessingAnswer(false);
       } else {
+        console.log('Game ending after timeout on last question');
         setGamePhase('ai-solving');
         simulateAISolving();
       }
@@ -127,6 +136,11 @@ const PatternGame = ({ onGameEnd }: PatternGameProps) => {
   };
 
   const handleSubmit = () => {
+    if (isProcessingAnswer) return;
+    
+    console.log('Submitting answer for question', currentPattern + 1);
+    setIsProcessingAnswer(true);
+    
     const answer = parseInt(userAnswer);
     const correct = answer === patterns[currentPattern].answer;
     
@@ -135,19 +149,22 @@ const PatternGame = ({ onGameEnd }: PatternGameProps) => {
     setIsTimerActive(false);
     
     if (correct) {
-      setCorrectAnswers([...correctAnswers, answer]);
+      setCorrectAnswers(prev => [...prev, answer]);
     } else {
-      setWrongAnswers([...wrongAnswers, answer]);
+      setWrongAnswers(prev => [...prev, answer]);
     }
     
-    setUserAnswers([...userAnswers, answer]);
+    setUserAnswers(prev => [...prev, answer]);
 
     setTimeout(() => {
       if (currentPattern < patterns.length - 1) {
-        setCurrentPattern(currentPattern + 1);
+        console.log('Moving to next question after submit');
+        setCurrentPattern(prev => prev + 1);
         setUserAnswer("");
         setShowResult(false);
+        setIsProcessingAnswer(false);
       } else {
+        console.log('Game ending after submit on last question');
         setGamePhase('ai-solving');
         simulateAISolving();
       }
@@ -276,7 +293,7 @@ const PatternGame = ({ onGameEnd }: PatternGameProps) => {
                   <div className="flex items-center justify-center gap-3 mb-3">
                     {isCorrect ? <CheckCircle size={24} /> : <XCircle size={24} />}
                     <span className="font-bold text-xl font-mono">
-                      {isCorrect ? '🎉 CORRECT!' : timeLeft === 0 ? '⏰ TIME UP!' : '❌ INCORRECT'}
+                      {isCorrect ? '🎉 CORRECT!' : userAnswers[userAnswers.length - 1] === -1 ? '⏰ TIME UP!' : '❌ INCORRECT'}
                     </span>
                   </div>
                   <p className="font-mono">
@@ -293,11 +310,12 @@ const PatternGame = ({ onGameEnd }: PatternGameProps) => {
                     onChange={(e) => setUserAnswer(e.target.value)}
                     placeholder="Enter your answer"
                     className="text-center text-2xl font-bold bg-gray-800 border-2 border-cyan-400 text-cyan-300 font-mono h-16 retro-glow"
-                    onKeyPress={(e) => e.key === 'Enter' && userAnswer && handleSubmit()}
+                    onKeyPress={(e) => e.key === 'Enter' && userAnswer && !isProcessingAnswer && handleSubmit()}
+                    disabled={isProcessingAnswer}
                   />
                   <Button
                     onClick={handleSubmit}
-                    disabled={!userAnswer}
+                    disabled={!userAnswer || isProcessingAnswer}
                     className="w-full bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 hover:from-cyan-500 hover:via-purple-600 hover:to-pink-600 text-black font-bold text-xl py-6 font-mono retro-glow border-2 border-white/30"
                   >
                     🚀 SUBMIT ANSWER
