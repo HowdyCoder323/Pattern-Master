@@ -39,9 +39,9 @@ const PatternGame = ({ onGameEnd }: PatternGameProps) => {
   const [errorRate, setErrorRate] = useState(0.8);
   const [isTraining, setIsTraining] = useState(false);
 
-  // Generate patterns when component mounts
+  // Generate 20 patterns instead of 5
   useEffect(() => {
-    setPatterns(generatePatterns(5));
+    setPatterns(generatePatterns(20));
   }, []);
 
   // Timer effect
@@ -175,18 +175,19 @@ const PatternGame = ({ onGameEnd }: PatternGameProps) => {
   const simulateAISolving = async () => {
     const userAccuracy = correctAnswers.length / patterns.length;
     const learningEfficiency = learningRate / (1 + errorRate);
-    const aiAccuracy = Math.max(0.1, userAccuracy * learningEfficiency * 0.9 + Math.random() * 0.2);
     
-    for (let i = 0; i <= 10; i++) {
-      await new Promise(resolve => setTimeout(resolve, 400));
-      setAiProgress((i / 10) * 100);
+    // AI solves 100 questions
+    for (let i = 0; i <= 100; i++) {
+      await new Promise(resolve => setTimeout(resolve, 150)); // Faster for 100 questions
+      setAiProgress((i / 100) * 100);
     }
 
     setIsTraining(false);
 
-    const aiCorrect = Math.round(Math.min(10, Math.max(0, aiAccuracy * 10)));
+    const aiAccuracy = Math.max(0.1, userAccuracy * learningEfficiency * 0.9 + Math.random() * 0.2);
+    const aiCorrect = Math.round(Math.min(100, Math.max(0, aiAccuracy * 100)));
     const userScore = (correctAnswers.length / patterns.length) * 100;
-    const aiScore = (aiCorrect / 10) * 100;
+    const aiScore = (aiCorrect / 100) * 100;
 
     onGameEnd({
       userAnswers,
@@ -198,7 +199,8 @@ const PatternGame = ({ onGameEnd }: PatternGameProps) => {
       learningRate,
       errorRate,
       wrongAnswers: wrongAnswers.length,
-      timeouts: userAnswers.filter(a => a === -1).length
+      timeouts: userAnswers.filter(a => a === -1).length,
+      totalQuestions: 100 // AI questions
     });
   };
 

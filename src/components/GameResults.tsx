@@ -14,12 +14,13 @@ interface GameResultsProps {
     userAccuracy: number;
     learningRate?: number;
     errorRate?: number;
+    totalQuestions?: number;
   };
   onRestart: () => void;
 }
 
 const GameResults = ({ data, onRestart }: GameResultsProps) => {
-  const { userScore, aiScore, aiCorrect, userAccuracy, learningRate = 0.5, errorRate = 0.5 } = data;
+  const { userScore, aiScore, aiCorrect, userAccuracy, learningRate = 0.5, errorRate = 0.5, totalQuestions = 100 } = data;
 
   const getPerformanceMessage = () => {
     if (aiScore >= 90) return "🎉 LEGENDARY! Your AI is a GENIUS!";
@@ -71,7 +72,7 @@ const GameResults = ({ data, onRestart }: GameResultsProps) => {
                 <p>🎯 Accuracy: {Math.round(userAccuracy * 100)}%</p>
                 <p>✅ Patterns solved: {data.userAnswers.filter((answer, index) => 
                   answer === data.correctAnswers[index]
-                ).length}/5</p>
+                ).length}/20</p>
               </div>
             </div>
           </div>
@@ -97,7 +98,7 @@ const GameResults = ({ data, onRestart }: GameResultsProps) => {
               </div>
               
               <div className="text-sm text-purple-300 font-mono space-y-2">
-                <p>🧮 Problems solved: {aiCorrect}/10</p>
+                <p>🧮 Problems solved: {aiCorrect}/{totalQuestions}</p>
                 <p>📚 Trained on your {Math.round(userAccuracy * 100)}% accuracy</p>
               </div>
             </div>
@@ -130,11 +131,11 @@ const GameResults = ({ data, onRestart }: GameResultsProps) => {
           </div>
         </div>
 
-        {/* Pattern Review */}
+        {/* Pattern Review - Show first 10 of the 20 user questions */}
         <div className="bg-gray-800/50 rounded-xl p-6 border-2 border-yellow-400 mb-8 retro-glow">
-          <h3 className="text-xl font-bold text-yellow-400 mb-4 font-mono">📊 PATTERN REVIEW</h3>
+          <h3 className="text-xl font-bold text-yellow-400 mb-4 font-mono">📊 PATTERN REVIEW (First 10/20)</h3>
           <div className="space-y-3">
-            {data.userAnswers.map((answer, index) => (
+            {data.userAnswers.slice(0, 10).map((answer, index) => (
               <div key={index} className="flex justify-between items-center py-3 px-4 bg-gray-700/50 rounded-lg border border-gray-600">
                 <span className="text-cyan-300 font-mono font-bold">Pattern {index + 1}</span>
                 <div className="flex items-center gap-4">
@@ -148,6 +149,9 @@ const GameResults = ({ data, onRestart }: GameResultsProps) => {
               </div>
             ))}
           </div>
+          {data.userAnswers.length > 10 && (
+            <p className="text-center text-gray-400 font-mono mt-4">... and {data.userAnswers.length - 10} more questions</p>
+          )}
         </div>
 
         <div className="text-center">
