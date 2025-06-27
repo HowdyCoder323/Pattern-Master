@@ -1,7 +1,7 @@
-
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Trophy, User, Bot, RefreshCw, Zap, AlertTriangle } from "lucide-react";
 
 interface GameResultsProps {
@@ -131,27 +131,26 @@ const GameResults = ({ data, onRestart }: GameResultsProps) => {
           </div>
         </div>
 
-        {/* Pattern Review - Show first 10 of the 20 user questions */}
+        {/* Pattern Review - Scrollable List */}
         <div className="bg-gray-800/50 rounded-xl p-6 border-2 border-yellow-400 mb-8 retro-glow">
-          <h3 className="text-xl font-bold text-yellow-400 mb-4 font-mono">📊 PATTERN REVIEW (First 10/20)</h3>
-          <div className="space-y-3">
-            {data.userAnswers.slice(0, 10).map((answer, index) => (
-              <div key={index} className="flex justify-between items-center py-3 px-4 bg-gray-700/50 rounded-lg border border-gray-600">
-                <span className="text-cyan-300 font-mono font-bold">Pattern {index + 1}</span>
-                <div className="flex items-center gap-4">
-                  <span className="text-cyan-200 font-mono">You: {answer}</span>
-                  <span className="text-gray-400">|</span>
-                  <span className="text-cyan-200 font-mono">Correct: {data.correctAnswers[index]}</span>
-                  <div className={`w-4 h-4 rounded-full ${
-                    answer === data.correctAnswers[index] ? 'bg-green-500' : 'bg-red-500'
-                  } retro-glow`}></div>
+          <h3 className="text-xl font-bold text-yellow-400 mb-4 font-mono">📊 PATTERN REVIEW (All {data.userAnswers.length} Questions)</h3>
+          <ScrollArea className="h-80 w-full">
+            <div className="space-y-3 pr-4">
+              {data.userAnswers.map((answer, index) => (
+                <div key={index} className="flex justify-between items-center py-3 px-4 bg-gray-700/50 rounded-lg border border-gray-600">
+                  <span className="text-cyan-300 font-mono font-bold">Pattern {index + 1}</span>
+                  <div className="flex items-center gap-4">
+                    <span className="text-cyan-200 font-mono">You: {answer === -1 ? 'No Answer' : answer}</span>
+                    <span className="text-gray-400">|</span>
+                    <span className="text-cyan-200 font-mono">Correct: {data.correctAnswers[index]}</span>
+                    <div className={`w-4 h-4 rounded-full ${
+                      answer === data.correctAnswers[index] ? 'bg-green-500' : 'bg-red-500'
+                    } retro-glow`}></div>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-          {data.userAnswers.length > 10 && (
-            <p className="text-center text-gray-400 font-mono mt-4">... and {data.userAnswers.length - 10} more questions</p>
-          )}
+              ))}
+            </div>
+          </ScrollArea>
         </div>
 
         <div className="text-center">
