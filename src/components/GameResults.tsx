@@ -97,7 +97,7 @@ const GameResults = ({ data, onRestart }: GameResultsProps) => {
               </div>
               
               <div className="text-sm text-purple-300 font-mono space-y-2">
-                <p>🧮 Problems solved: {aiCorrect}/25</p>
+                <p>🧮 Problems solved: {aiCorrect}/10</p>
                 <p>📚 Trained on your {Math.round(userAccuracy * 100)}% accuracy</p>
               </div>
             </div>

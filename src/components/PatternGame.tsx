@@ -173,74 +173,32 @@ const PatternGame = ({ onGameEnd }: PatternGameProps) => {
   };
 
   const simulateAISolving = async () => {
-    // Compute necessary variables for AI simulation
-    const userCorrectCount = correctAnswers.length;
-    const userTotalAnswered = patterns.length;
-    const userAccuracy = userCorrectCount / userTotalAnswered;
-    
-    // Calculate AI efficiency based on user's training
+    const userAccuracy = correctAnswers.length / patterns.length;
     const learningEfficiency = learningRate / (1 + errorRate);
-    const baseAIAccuracy = Math.max(0.1, Math.min(0.95, userAccuracy * learningEfficiency));
+    const aiAccuracy = Math.max(0.1, userAccuracy * learningEfficiency * 0.9 + Math.random() * 0.2);
     
-    // Generate 25 AI test patterns
-    const aiTestPatterns = generatePatterns(25);
-    const aiAnswers: number[] = [];
-    let aiCorrectCount = 0;
-    
-    // Simulate AI answering each question with influenced randomness
-    for (let i = 0; i < 25; i++) {
-      // Update progress
+    for (let i = 0; i <= 10; i++) {
       await new Promise(resolve => setTimeout(resolve, 400));
-      setAiProgress(((i + 1) / 25) * 100);
-      
-      const correctAnswer = aiTestPatterns[i].answer;
-      
-      // Generate AI's answer based on efficiency
-      const shouldBeCorrect = Math.random() < baseAIAccuracy;
-      
-      let aiAnswer: number;
-      if (shouldBeCorrect) {
-        // AI gets it right
-        aiAnswer = correctAnswer;
-        aiCorrectCount++;
-      } else {
-        // AI gets it wrong - generate a plausible wrong answer
-        const variance = Math.max(1, Math.abs(correctAnswer * 0.3));
-        const randomOffset = (Math.random() - 0.5) * variance * 2;
-        aiAnswer = Math.round(correctAnswer + randomOffset);
-        
-        // Ensure it's actually wrong
-        if (aiAnswer === correctAnswer) {
-          aiAnswer = correctAnswer + (Math.random() > 0.5 ? 1 : -1);
-        }
-      }
-      
-      aiAnswers.push(aiAnswer);
+      setAiProgress((i / 10) * 100);
     }
 
     setIsTraining(false);
 
-    const userScore = (userCorrectCount / userTotalAnswered) * 100;
-    const aiScore = (aiCorrectCount / 25) * 100;
+    const aiCorrect = Math.round(Math.min(10, Math.max(0, aiAccuracy * 10)));
+    const userScore = (correctAnswers.length / patterns.length) * 100;
+    const aiScore = (aiCorrect / 10) * 100;
 
-    // Enhanced results with AI simulation data
     onGameEnd({
       userAnswers,
       correctAnswers: patterns.map(p => p.answer),
       userScore,
       aiScore,
-      aiCorrect: aiCorrectCount,
+      aiCorrect,
       userAccuracy,
       learningRate,
       errorRate,
       wrongAnswers: wrongAnswers.length,
-      timeouts: userAnswers.filter(a => a === -1).length,
-      // AI simulation results
-      aiTestPatterns,
-      aiAnswers,
-      aiTotalQuestions: 25,
-      learningEfficiency,
-      baseAIAccuracy
+      timeouts: userAnswers.filter(a => a === -1).length
     });
   };
 
